@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Программирование — 5 мини-игр</title>
+  <style>
+    :root{
+      --bg1:#070b1d;
+      --bg2:#0d1435;
+      --panel:rgba(19,27,68,.88);
+      --panel2:rgba(12,18,47,.94);
+      --line:#58b7ff;
+      --lineSoft:rgba(88,183,255,.35);
+      --cyan:#57e3ff;
+      --text:#edf7ff;
+      --muted:#adc3df;
+      --yellow:#ffd84d;
+      --green:#59ffa7;
+      --red:#ff6f8f;
+      --shadow:0 0 0 2px rgba(88,183,255,.14), 0 16px 40px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 20% 15%, rgba(87,227,255,.14), transparent 22%),
+        radial-gradient(circle at 80% 25%, rgba(110,87,255,.14), transparent 22%),
+        radial-gradient(circle at 50% 80%, rgba(89,255,167,.10), transparent 22%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+      padding:24px;
+    }
+    .wrap{max-width:1320px;margin:0 auto}
+    .topbar,.panel,.modal-box,.score-box,.board-item,.game-area{
+      background:linear-gradient(180deg, rgba(22,31,76,.92), rgba(11,18,46,.96));
+      border:2px solid var(--lineSoft);
+      box-shadow:var(--shadow);
+      border-radius:24px;
+    }
+    .topbar{
+      padding:22px;
+      display:grid;
+      grid-template-columns: 1.5fr .9fr;
+      gap:18px;
+      align-items:start;
+      margin-bottom:22px;
+    }
+    h1{
+      margin:0;
+      color:var(--cyan);
+      font-size:clamp(28px, 4vw, 46px);
+      text-shadow:0 0 16px rgba(87,227,255,.18);
+    }
+    .sub{margin:10px 0 0;color:var(--muted);font-size:15px;line-height:1.5}
+    .score-box{padding:16px 18px}
+    .score-title{font-weight:900;color:var(--cyan);font-size:22px;margin:0 0 12px}
+    .score-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+    .metric{
+      padding:12px 14px;
+      border:1px solid var(--lineSoft);
+      border-radius:16px;
+      background:rgba(88,183,255,.08);
+    }
+    .metric b{display:block;font-size:24px;color:var(--yellow);margin-top:4px}
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:12px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:18px;
+      margin-bottom:22px;
+    }
+    .card{
+      position:relative;
+      padding:24px 18px 20px;
+      min-height:190px;
+      border-radius:24px;
+      border:2px solid var(--lineSoft);
+      background:linear-gradient(180deg, rgba(34,49,112,.58), rgba(18,25,59,.86));
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:.2s ease;
+      overflow:hidden;
+    }
+    .card:hover{transform:translateY(-4px);border-color:rgba(87,227,255,.7)}
+    .badge{
+      position:absolute;right:12px;top:12px;
+      background:var(--yellow);color:#523f00;
+      border-radius:999px;padding:7px 11px;
+      font-size:11px;font-weight:900;text-transform:uppercase
+    }
+    .icon{font-size:46px;margin-bottom:14px}
+    .card h3{margin:0 0 8px;color:var(--cyan);font-size:20px}
+    .card p{margin:0;color:var(--muted);line-height:1.45;font-size:14px}
+    .board{
+      display:grid;
+      grid-template-columns: 1.2fr 2fr;
+      gap:18px;
+    }
+    .panel{padding:20px}
+    .panel h2{
+      margin:0 0 14px;
+      color:var(--cyan);
+      font-size:28px;
+    }
+    .board-item{
+      padding:14px 16px;
+      margin-top:10px;
+    }
+    .board-item h4{margin:0 0 8px;color:#ffe96e}
+    .board-item p{margin:0;color:var(--muted);line-height:1.5}
+    .modal{
+      position:fixed;inset:0;
+      background:rgba(4,8,20,.76);
+      display:none;align-items:center;justify-content:center;
+      padding:20px;z-index:100;
+    }
+    .modal.show{display:flex}
+    .modal-box{
+      width:min(920px,100%);
+      padding:24px;
+    }
+    .modal-top{
+      display:flex;justify-content:space-between;gap:12px;align-items:center;
+      margin-bottom:16px;
+    }
+    .modal-top h2{margin:0;color:var(--cyan)}
+    .game-area{
+      padding:18px;
+      min-height:360px;
+    }
+    .info{
+      color:var(--muted);
+      line-height:1.6;
+      margin-bottom:14px;
+    }
+    button{
+      border:0;
+      border-radius:14px;
+      padding:12px 16px;
+      cursor:pointer;
+      font-weight:900;
+      background:linear-gradient(180deg,#5be7ff,#2aa5ff);
+      color:#04182e;
+      box-shadow:0 10px 22px rgba(42,165,255,.24);
+    }
+    button.secondary{
+      background:linear-gradient(180deg,#243775,#182552);
+      color:var(--text);
+      border:1px solid var(--lineSoft);
+      box-shadow:none;
+    }
+    .status{
+      margin-top:14px;
+      min-height:28px;
+      font-weight:800;
+    }
+    .ok{color:var(--green)}
+    .bad{color:var(--red)}
+    .wheel{
+      width:240px;height:240px;border-radius:50%;
+      margin:12px auto 18px;
+      border:6px solid rgba(255,255,255,.18);
+      display:flex;align-items:center;justify-content:center;
+      text-align:center;padding:26px;
+      background:
+        conic-gradient(#1f4a9e 0 25%, #285cc0 25% 50%, #1f4a9e 50% 75%, #285cc0 75% 100%);
+      box-shadow:0 0 0 4px rgba(88,183,255,.15), inset 0 0 40px rgba(0,0,0,.32);
+      font-size:22px;font-weight:900;color:white;
+      transition:transform 2.2s cubic-bezier(.16,.95,.2,1);
+    }
+    .center{text-align:center}
+    .question-box,.code-box,.sequence-box,.anagram-box,.quick-box{
+      margin-top:12px;
+      padding:16px;
+      border-radius:18px;
+      background:#091127;
+      border:1px solid rgba(88,183,255,.24);
+    }
+    .question{font-size:22px;font-weight:900;color:#ffe96e;margin-bottom:12px}
+    .options{display:grid;gap:10px}
+    .option{
+      width:100%;text-align:left;padding:12px 14px;border-radius:14px;
+      background:rgba(88,183,255,.08);
+      border:1px solid var(--lineSoft);color:var(--text);font-weight:700;
+    }
+    .option:hover{background:rgba(88,183,255,.14)}
+    .word{
+      font-size:34px;
+      text-align:center;
+      letter-spacing:3px;
+      color:#ffe96e;
+      font-weight:900;
+      margin:8px 0 14px;
+    }
+    input[type="text"]{
+      width:100%;padding:13px 14px;border-radius:14px;border:1px solid var(--lineSoft);
+      background:#0b1532;color:var(--text);font-size:16px;
+    }
+    .timer{
+      display:inline-block;
+      padding:8px 12px;
+      border-radius:999px;
+      background:rgba(255,216,77,.15);
+      border:1px solid rgba(255,216,77,.45);
+      color:#ffe96e;
+      font-weight:900;
+      margin-bottom:14px;
+    }
+    .sequence-target,.sequence-pool{
+      display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;
+    }
+    .step{
+      padding:12px 14px;border-radius:14px;border:1px solid var(--lineSoft);
+      background:rgba(88,183,255,.08);font-weight:800;
+    }
+    .sequence-target .step{
+      min-width:140px;min-height:48px;display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.04);
+    }
+    .small{
+      color:var(--muted);
+      font-size:14px;
+    }
+    .footer-note{margin-top:14px;color:var(--muted)}
+    @media (max-width:1200px){
+      .grid{grid-template-columns:repeat(3,1fr)}
+      .board{grid-template-columns:1fr}
+      .topbar{grid-template-columns:1fr}
+    }
+    @media (max-width:760px){
+      .grid{grid-template-columns:1fr}
+      .score-grid{grid-template-columns:1fr 1fr}
+      body{padding:14px}
+      .modal-box{padding:16px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="topbar">
+      <div>
+        <h1>ВИДЫ ПРОГРАММИРОВАНИЯ</h1>
+        <p class="sub">Готовый учебный сайт с <b>5 работающими мини-играми</b> и <b>таблицей очков</b>. Нажмите на любую карточку, сыграйте и набирайте баллы. За каждую правильную победу начисляются очки только один раз за раунд.</p>
+        <div class="toolbar">
+          <button onclick="resetScore()">Сбросить очки</button>
+          <button class="secondary" onclick="showRules()">Правила</button>
+        </div>
+      </div>
+      <div class="score-box">
+        <div class="score-title">🏆 Таблица очков</div>
+        <div class="score-grid">
+          <div class="metric">Очки<b id="scorePoints">0</b></div>
+          <div class="metric">Победы<b id="scoreWins">0</b></div>
+          <div class="metric">Игры сыграно<b id="scorePlayed">0</b></div>
+          <div class="metric">Точность<b id="scoreAccuracy">0%</b></div>
+        </div>
+        <div class="footer-note">Счёт обновляется автоматически после каждой игры.</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card" onclick="openGame('wheel')">
+        <div class="badge">1</div>
+        <div class="icon">🎯</div>
+        <h3>Колесо кода</h3>
+        <p>Случайный вопрос по HTML, CSS, JavaScript, Python и алгоритмам.</p>
+      </article>
+
+      <article class="card" onclick="openGame('anagram')">
+        <div class="badge">2</div>
+        <div class="icon">🔤</div>
+        <h3>Анаграмма</h3>
+        <p>Соберите правильный термин из перемешанных букв.</p>
+      </article>
+
+      <article class="card" onclick="openGame('quick')">
+        <div class="badge">3</div>
+        <div class="icon">⏱️</div>
+        <h3>Быстрый вопрос</h3>
+        <p>Ответьте на вопрос за 10 секунд.</p>
+      </article>
+
+      <article class="card" onclick="openGame('fixcode')">
+        <div class="badge">4</div>
+        <div class="icon">💻</div>
+        <h3>Исправь код</h3>
+        <p>Найдите правильный вариант кода из нескольких ответов.</p>
+      </article>
+
+      <article class="card" onclick="openGame('sequence')">
+        <div class="badge">5</div>
+        <div class="icon">🧩</div>
+        <h3>Алгоритм</h3>
+        <p>Поставьте шаги в правильном порядке.</p>
+      </article>
+    </section>
+
+    <section class="board">
+      <div class="panel">
+        <h2>📋 Что есть на сайте</h2>
+        <div class="board-item">
+          <h4>Только 5 игр</h4>
+          <p>На сайте ровно пять мини-игр, как вы просили. Все карточки открывают рабочие задания.</p>
+        </div>
+        <div class="board-item">
+          <h4>Таблица очков</h4>
+          <p>Считаются очки, победы, количество сыгранных игр и точность ответов.</p>
+        </div>
+        <div class="board-item">
+          <h4>Правильная логика</h4>
+          <p>У каждой игры есть проверка правильного ответа, сообщение о результате и кнопка начать новый раунд.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>✅ Игры работают так</h2>
+        <div class="board-item">
+          <h4>1. Колесо кода</h4>
+          <p>Колесо вращается, выбирает случайный вопрос, потом вы отвечаете кнопкой.</p>
+        </div>
+        <div class="board-item">
+          <h4>2. Анаграмма</h4>
+          <p>Нужно ввести правильный термин. Ответ проверяется без учёта регистра.</p>
+        </div>
+        <div class="board-item">
+          <h4>3. Быстрый вопрос</h4>
+          <p>Запускается таймер на 10 секунд. Если не ответить вовремя, раунд считается проигранным.</p>
+        </div>
+        <div class="board-item">
+          <h4>4. Исправь код</h4>
+          <p>Нужно выбрать правильный код среди вариантов.</p>
+        </div>
+        <div class="board-item">
+          <h4>5. Алгоритм</h4>
+          <p>Нажимайте на шаги в нужной последовательности и затем проверяйте порядок.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <div class="modal-top">
+        <h2 id="modalTitle">Игра</h2>
+        <button class="secondary" onclick="closeModal()">Закрыть</button>
+      </div>
+      <div class="game-area" id="gameArea"></div>
+    </div>
+  </div>
+
+<script>
+const score = { points:0, wins:0, played:0, attempts:0 };
+const gameState = { current:null, awarded:false, timer:null, timeLeft:10, selectedSequence:[] };
+
+const wheelQuestions = [
+  { q:'Что делает HTML?', options:['Описывает структуру страницы','Красит элементы','Запускает сервер'], correct:0, explain:'HTML отвечает за структуру страницы.' },
+  { q:'Для чего нужен CSS?', options:['Для стилей и оформления','Для базы данных','Для компиляции Python'], correct:0, explain:'CSS отвечает за внешний вид.' },
+  { q:'Что возвращает функция return?', options:['Результат функции','Новый цикл','Комментарий'], correct:0, explain:'return возвращает значение.' },
+  { q:'Что такое массив?', options:['Коллекция элементов','Тип цикла','Вид браузера'], correct:0, explain:'Массив хранит несколько значений.' },
+  { q:'Какой язык часто используют во frontend?', options:['JavaScript','SQL','C'], correct:0, explain:'JavaScript — основной язык для frontend.' }
+];
+
+const anagrams = [
+  { scrambled:'КИЦЛ', answer:'ЦИКЛ' },
+  { scrambled:'ССАКЛ', answer:'КЛАСС' },
+  { scrambled:'ИФУНКЦЯ', answer:'ФУНКЦИЯ' },
+  { scrambled:'СИВМАСС', answer:'МАССИВ' },
+  { scrambled:'БЪЕКТО', answer:'ОБЪЕКТ' }
+];
+
+const quickQuestions = [
+  { q:'Как называется повторение действий в программе?', options:['Цикл','Таблица','Файл'], correct:0 },
+  { q:'Что нужно, чтобы функция отдала результат?', options:['return','console','style'], correct:0 },
+  { q:'Где обычно пишут стили страницы?', options:['CSS','HTML','PNG'], correct:0 },
+  { q:'Что из этого является языком программирования?', options:['Python','Monitor','Folder'], correct:0 }
+];
+
+const fixCodeQuestions = [
+  {
+    title:'Как правильно вывести текст в JavaScript?',
+    code:'Нужно выбрать правильный вариант:',
+    options:['print("Hello")','console.log("Hello")','echo "Hello"'],
+    correct:1
+  },
+  {
+    title:'Как правильно написать функцию в Python?',
+    code:'Нужно выбрать правильный вариант:',
+    options:['function test():','def test():','func test()'],
+    correct:1
+  },
+  {
+    title:'Как правильно создать условие в JavaScript?',
+    code:'Нужно выбрать правильный вариант:',
+    options:['if x > 5 {}','if (x > 5) {}','if x > 5 then'],
+    correct:1
+  }
+];
+
+const sequenceQuestions = [
+  { steps:['Ввод','Обработка','Вывод'] },
+  { steps:['HTML','CSS','JavaScript'] },
+  { steps:['План','Код','Тест'] }
+];
+
+function updateScore(){
+  document.getElementById('scorePoints').textContent = score.points;
+  document.getElementById('scoreWins').textContent = score.wins;
+  document.getElementById('scorePlayed').textContent = score.played;
+  const acc = score.attempts ? Math.round((score.wins / score.attempts) * 100) : 0;
+  document.getElementById('scoreAccuracy').textContent = acc + '%';
+}
+
+function registerAttempt(){
+  score.played++;
+  score.attempts++;
+  updateScore();
+}
+function registerWin(points=10){
+  if(gameState.awarded) return;
+  gameState.awarded = true;
+  score.points += points;
+  score.wins++;
+  updateScore();
+}
+function resetScore(){
+  score.points = 0;
+  score.wins = 0;
+  score.played = 0;
+  score.attempts = 0;
+  updateScore();
+}
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+  clearInterval(gameState.timer);
+}
+function openGame(type){
+  clearInterval(gameState.timer);
+  gameState.current = type;
+  gameState.awarded = false;
+  gameState.selectedSequence = [];
+  document.getElementById('modal').classList.add('show');
+  if(type === 'wheel') renderWheel();
+  if(type === 'anagram') renderAnagram();
+  if(type === 'quick') renderQuick();
+  if(type === 'fixcode') renderFixCode();
+  if(type === 'sequence') renderSequence();
+}
+function showRules(){
+  document.getElementById('modal').classList.add('show');
+  document.getElementById('modalTitle').textContent = 'Правила';
+  document.getElementById('gameArea').innerHTML = `
+    <div class="info">
+      <b>На сайте ровно 5 игр.</b><br><br>
+      1. За каждый новый запуск игры считается одна попытка.<br>
+      2. За правильный ответ начисляются очки.<br>
+      3. В одной игре очки выдаются только один раз за раунд.<br>
+      4. В игре "Быстрый вопрос" есть таймер 10 секунд.<br>
+      5. Кнопка "Сбросить очки" очищает таблицу результатов.
+    </div>`;
+}
+
+function renderWheel(){
+  document.getElementById('modalTitle').textContent = '🎯 Колесо кода';
+  document.getElementById('gameArea').innerHTML = `
+    <div class="info">Нажмите кнопку <b>Крутить</b>. После вращения появится случайный вопрос.</div>
+    <div class="wheel" id="wheelDisplay">КОД</div>
+    <div class="center"><button onclick="spinWheel()">Крутить</button></div>
+    <div class="question-box" id="wheelQuestionBox" style="display:none"></div>
+    <div class="status" id="wheelStatus"></div>
+  `;
+}
+function spinWheel(){
+  registerAttempt();
+  gameState.awarded = false;
+  const wheel = document.getElementById('wheelDisplay');
+  const q = wheelQuestions[Math.floor(Math.random()*wheelQuestions.length)];
+  gameState.wheelQuestion = q;
+  const deg = 1440 + Math.floor(Math.random()*360);
+  wheel.style.transform = 'rotate(' + deg + 'deg)';
+  setTimeout(() => {
+    wheel.innerHTML = 'ВОПРОС';
+    const box = document.getElementById('wheelQuestionBox');
+    box.style.display = 'block';
+    box.innerHTML = `
+      <div class="question">${q.q}</div>
+      <div class="options">
+        ${q.options.map((op, i)=>`<button class="option" onclick="answerWheel(${i})">${op}</button>`).join('')}
+      </div>
+    `;
+    document.getElementById('wheelStatus').textContent = '';
+  }, 2200);
+}
+function answerWheel(index){
+  const q = gameState.wheelQuestion;
+  const st = document.getElementById('wheelStatus');
+  if(index === q.correct){
+    registerWin(10);
+    st.className = 'status ok';
+    st.textContent = 'Правильно! +10 очков. ' + q.explain;
+  } else {
+    st.className = 'status bad';
+    st.textContent = 'Неправильно. ' + q.explain;
+  }
+}
+
+function renderAnagram(){
+  document.getElementById('modalTitle').textContent = '🔤 Анаграмма';
+  const item = anagrams[Math.floor(Math.random()*anagrams.length)];
+  gameState.anagram = item;
+  registerAttempt();
+  document.getElementById('gameArea').innerHTML = `
+    <div class="info">Введите правильное слово из перемешанных букв.</div>
+    <div class="anagram-box">
+      <div class="word">${item.scrambled}</div>
+      <input type="text" id="anagramInput" placeholder="Введите ответ">
+      <div class="toolbar">
+        <button onclick="checkAnagram()">Проверить</button>
+        <button class="secondary" onclick="renderAnagram()">Новое слово</button>
+      </div>
+      <div class="status" id="anagramStatus"></div>
+    </div>
+  `;
+}
+function checkAnagram(){
+  const val = document.getElementById('anagramInput').value.trim().toUpperCase();
+  const ans = gameState.anagram.answer.toUpperCase();
+  const st = document.getElementById('anagramStatus');
+  if(val === ans){
+    registerWin(10);
+    st.className = 'status ok';
+    st.textContent = 'Верно! Это слово: ' + gameState.anagram.answer + '. +10 очков.';
+  } else {
+    st.className = 'status bad';
+    st.textContent = 'Пока неверно. Попробуйте ещё раз.';
+  }
+}
+
+function renderQuick(){
+  document.getElementById('modalTitle').textContent = '⏱️ Быстрый вопрос';
+  const q = quickQuestions[Math.floor(Math.random()*quickQuestions.length)];
+  gameState.quick = q;
+  gameState.timeLeft = 10;
+  registerAttempt();
+  document.getElementById('gameArea').innerHTML = `
+    <div class="info">Ответьте до того, как таймер дойдёт до нуля.</div>
+    <div class="quick-box">
+      <div class="timer">Осталось: <span id="timeLeft">10</span> сек.</div>
+      <div class="question">${q.q}</div>
+      <div class="options">
+        ${q.options.map((op, i)=>`<button class="option" onclick="answerQuick(${i})">${op}</button>`).join('')}
+      </div>
+      <div class="toolbar">
+        <button class="secondary" onclick="renderQuick()">Новый вопрос</button>
+      </div>
+      <div class="status" id="quickStatus"></div>
+    </div>
+  `;
+  clearInterval(gameState.timer);
+  gameState.awarded = false;
+  gameState.timer = setInterval(() => {
+    gameState.timeLeft--;
+    const t = document.getElementById('timeLeft');
+    if(t) t.textContent = gameState.timeLeft;
+    if(gameState.timeLeft <= 0){
+      clearInterval(gameState.timer);
+      const st = document.getElementById('quickStatus');
+      if(st){
+        st.className = 'status bad';
+        st.textContent = 'Время вышло. Попробуйте новый вопрос.';
+      }
+      document.querySelectorAll('.quick-box .option').forEach(btn => btn.disabled = true);
+    }
+  }, 1000);
+}
+function answerQuick(i){
+  clearInterval(gameState.timer);
+  const q = gameState.quick;
+  const st = document.getElementById('quickStatus');
+  document.querySelectorAll('.quick-box .option').forEach(btn => btn.disabled = true);
+  if(i === q.correct){
+    registerWin(15);
+    st.className = 'status ok';
+    st.textContent = 'Правильно! Быстрый ответ принят. +15 очков.';
+  } else {
+    st.className = 'status bad';
+    st.textContent = 'Неверно. Правильный ответ: ' + q.options[q.correct];
+  }
+}
+
+function renderFixCode(){
+  document.getElementById('modalTitle').textContent = '💻 Исправь код';
+  const q = fixCodeQuestions[Math.floor(Math.random()*fixCodeQuestions.length)];
+  gameState.fix = q;
+  registerAttempt();
+  document.getElementById('gameArea').innerHTML = `
+    <div class="info">Выберите правильный вариант кода.</div>
+    <div class="code-box">
+      <div class="question">${q.title}</div>
+      <div class="small">${q.code}</div>
+      <div class="options" style="margin-top:14px">
+        ${q.options.map((op, i)=>`<button class="option" onclick="answerFixCode(${i})"><code>${escapeHtml(op)}</code></button>`).join('')}
+      </div>
+      <div class="toolbar">
+        <button class="secondary" onclick="renderFixCode()">Новое задание</button>
+      </div>
+      <div class="status" id="fixStatus"></div>
+    </div>
+  `;
+}
+function answerFixCode(i){
+  const q = gameState.fix;
+  const st = document.getElementById('fixStatus');
+  if(i === q.correct){
+    registerWin(10);
+    st.className = 'status ok';
+    st.textContent = 'Верно! Код выбран правильно. +10 очков.';
+  } else {
+    st.className = 'status bad';
+    st.textContent = 'Неправильно. Верный вариант: ' + q.options[q.correct];
+  }
+}
+
+function renderSequence(){
+  document.getElementById('modalTitle').textContent = '🧩 Алгоритм';
+  const item = sequenceQuestions[Math.floor(Math.random()*sequenceQuestions.length)];
+  gameState.sequence = item;
+  gameState.selectedSequence = [];
+  registerAttempt();
+  const shuffled = [...item.steps].sort(() => Math.random() - 0.5);
+  gameState.sequencePool = shuffled;
+  drawSequence();
+}
+function drawSequence(){
+  const item = gameState.sequence;
+  document.getElementById('gameArea').innerHTML = `
+    <div class="info">Нажимайте на элементы снизу в правильном порядке. Они поднимутся наверх.</div>
+    <div class="sequence-box">
+      <div class="small">Правильный порядок нужно собрать полностью.</div>
+      <div class="sequence-target" id="sequenceTarget">
+        ${item.steps.map((_, idx)=>`<div class="step">${gameState.selectedSequence[idx] || '...'}</div>`).join('')}
+      </div>
+      <div class="sequence-pool">
+        ${gameState.sequencePool.map((step, idx)=>`<button class="step" onclick="pickSequence(${idx})">${step}</button>`).join('')}
+      </div>
+      <div class="toolbar">
+        <button onclick="checkSequence()">Проверить</button>
+        <button class="secondary" onclick="resetSequence()">Очистить</button>
+        <button class="secondary" onclick="renderSequence()">Новое задание</button>
+      </div>
+      <div class="status" id="sequenceStatus"></div>
+    </div>
+  `;
+}
+function pickSequence(idx){
+  const picked = gameState.sequencePool.splice(idx,1)[0];
+  gameState.selectedSequence.push(picked);
+  drawSequence();
+}
+function resetSequence(){
+  gameState.sequencePool = [...gameState.sequence.steps].sort(() => Math.random() - 0.5);
+  gameState.selectedSequence = [];
+  drawSequence();
+}
+function checkSequence(){
+  const st = document.getElementById('sequenceStatus');
+  if(gameState.selectedSequence.length !== gameState.sequence.steps.length){
+    st.className = 'status bad';
+    st.textContent = 'Сначала заполните все шаги.';
+    return;
+  }
+  const ok = gameState.selectedSequence.join('|') === gameState.sequence.steps.join('|');
+  if(ok){
+    registerWin(15);
+    st.className = 'status ok';
+    st.textContent = 'Правильная последовательность! +15 очков.';
+  } else {
+    st.className = 'status bad';
+    st.textContent = 'Порядок неверный. Правильно: ' + gameState.sequence.steps.join(' → ');
+  }
+}
+
+function escapeHtml(text){
+  return text
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#039;');
+}
+
+updateScore();
+</script>
+</body>
+</html>
